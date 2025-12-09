@@ -28,11 +28,26 @@ pipeline {
         stage('Run API container (smoke test)') {
             steps {
                 sh """
-                    docker run -d --name api-test -p 3000:3000 demo-api:${BUILD_NUMBER}
-                    sleep 3
-                    curl -f http://localhost:3000
-                    docker rm -f api-test
+                    # Clean up any old container
+                    docker rm -f api-test || true
+        
+                    # Start container (no host port needed)
+                    docker run -d --name api-test demo-api:${BUILD_NUMBER}
+        
+                    # Wait for app to start
+                    sleep 5
+        
+                    # Call the API FROM INSIDE the container
+                    docker exec api-test curl -f http://localhost:3000
+        
+                    echo "Smoke test OK"
                 """
+            }
+        }
+
+        stage('Cleanup container') {
+            steps {
+                sh 'docker rm -f api-test || true'
             }
         }
 
