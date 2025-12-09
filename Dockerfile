@@ -1,10 +1,18 @@
-FROM node:18-alpine
+FROM node:18
+
+# Install curl for smoke tests
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY app/package.json .
+
+# Install app dependencies
+COPY app/package.json ./
 RUN npm install
 
-COPY app /app
+# Copy app source
+COPY app ./
 
 EXPOSE 3000
 
